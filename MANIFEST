@@ -1,0 +1,7 @@
+CHANGES.txt
+jwzthreading.py
+LICENSE
+MANIFEST
+README
+setup.py
+test/test_jwz.py

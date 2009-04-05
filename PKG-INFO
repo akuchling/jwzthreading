@@ -1,0 +1,17 @@
+Metadata-Version: 1.0
+Name: jwzthreading
+Version: 0.91
+Summary: Algorithm for threading mail messages.
+Home-page: http://www.amk.ca/python/code/jwzthreading.html
+Author: A.M. Kuchling
+Author-email: amk@amk.ca
+License: UNKNOWN
+Download-URL: http://www.amk.ca/files/python/jwzthreading-0.91.tar.gz
+Description: Contains an implementation of an algorithm for threading mail
+        messages, as described at http://www.jwz.org/doc/threading.html.
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Topic :: Software Development :: Libraries
+Classifier: Topic :: Communications :: Email

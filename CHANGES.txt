@@ -1,0 +1,8 @@
+
+0.91:
+
+     * Include a license (BSD-style).
+
+     * Add a simple test suite; it still needs expansion.
+
+     

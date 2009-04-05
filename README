@@ -1,0 +1,14 @@
+
+This is an implementation of a fast and smart algorithm for threading
+mail messages, as described by Jamie Zawinski at
+http://www.jwz.org/doc/threading.html.  Don't send problems with this
+code to him, though; instead contact the author at amk@amk.ca, or
+bring it up on the oedipus-devel list at SourceForge.
+
+The test suite is written using Sancho
+(http://www.mems-exchange.org/software/sancho/).
+
+This code is under a BSD-style license; see the LICENSE file for the
+full text.
+
+--amk
