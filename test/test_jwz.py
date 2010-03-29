@@ -49,10 +49,23 @@ Message body
 """
         m = make_rfc822_message("""Subject: random
 
-Body.""")        
+Body.""")
         self.assertRaises(ValueError, jwzthreading.make_message, m)
-        
-# class JWZTest
+
+        # Verify that repr() works
+
+    def test_basic_message(self):
+        msg = make_rfc822_message("""Subject: random
+Message-ID: <message1>
+References: <ref1> <ref2>
+In-Reply-To: <reply>
+
+Body.""")
+        m = jwzthreading.make_message(msg)
+        self.assertTrue(repr(m))
+        self.assertEquals(m.subject, 'random')
+        self.assertEquals(m.references,
+                          ['ref1', 'ref2', 'reply'])
 
 
 if __name__ == "__main__":
