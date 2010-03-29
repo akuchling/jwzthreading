@@ -7,9 +7,6 @@ messages, as described at http://www.jwz.org/doc/threading.html.
 
 # This code is under a BSD-style license; see the LICENSE file for details.
 
-__revision__ = "$Id: jwzthreading.py,v 1.2 2003/03/26 13:45:11 akuchling Exp $"
-
-
 import re
 
 __all__ = ['Message', 'make_message', 'thread']
@@ -66,7 +63,7 @@ def make_message (msg):
     
     m = msgid_pat.search(msg.getheader("Message-ID", ""))
     if m is None:
-        raise ValueError, "Message does not contain a Message-ID: header"
+        raise ValueError("Message does not contain a Message-ID: header")
 
     new.message_id = m.group(1)
 
@@ -274,8 +271,8 @@ def print_container(ctr, depth=0, debug=0):
 def main():
     import mailbox
     
-    print 'Reading input file...'
-    f = open("mbox")
+    print('Reading input file...')
+    f = open("mbox", 'rb')
     mbox = mailbox.UnixMailbox(f)
     msglist = []
     while 1:
@@ -286,7 +283,7 @@ def main():
         msglist.append(m)
     f.close()
 
-    print 'Threading...'
+    print('Threading...')
     subject_table = thread(msglist)
 
     # Output
