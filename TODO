@@ -1,0 +1,5 @@
+
+Port test suite to unittest
+Port to Python 3.
+Expand test suite.
+Use email instead of rfc822 module.
