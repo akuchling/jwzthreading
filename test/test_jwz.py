@@ -19,6 +19,8 @@ class JWZTest (unittest.TestCase):
 
     def test_container (self):
         c = jwzthreading.Container()
+        repr(c)
+
         c2 = jwzthreading.Container()
         self.assertTrue(c.is_dummy())
         self.assertEquals(c.children, [])
@@ -33,6 +35,7 @@ class JWZTest (unittest.TestCase):
         self.assertEquals(c2.parent, c)
         self.assertTrue(c.has_descendant(c2))
         self.assertTrue(c.has_descendant(c3))
+        self.assertTrue(c.has_descendant(c))
 
         # Remove a child
         c.remove_child(c2)
@@ -40,6 +43,15 @@ class JWZTest (unittest.TestCase):
         self.assertEquals(c2.parent, None)
         self.assertFalse(c.has_descendant(c3))
         self.assertTrue(c2.has_descendant(c3))
+
+        # Add child of one container to another
+        c3 = jwzthreading.Container()
+        c.add_child(c3)
+        c2.add_child(c3)
+        self.assertEquals(c3.parent, c2)
+
+    def test_uniq(self):
+        self.assertEquals(jwzthreading.uniq((1,2,3,1,2,3)), [1,2,3])
 
     def test_make_message (self):
         msg_templ = """Subject: %(subject)s
