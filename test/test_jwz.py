@@ -64,21 +64,32 @@ Message body
 Body.""")
         self.assertRaises(ValueError, jwzthreading.make_message, m)
 
-        # Verify that repr() works
-
     def test_basic_message(self):
         msg = make_rfc822_message("""Subject: random
 Message-ID: <message1>
-References: <ref1> <ref2>
+References: <ref1> <ref2> <ref1>
 In-Reply-To: <reply>
 
 Body.""")
         m = jwzthreading.make_message(msg)
         self.assertTrue(repr(m))
         self.assertEquals(m.subject, 'random')
-        self.assertEquals(m.references,
+        self.assertEquals(sorted(m.references),
                           ['ref1', 'ref2', 'reply'])
 
+        # Verify that repr() works
+        repr(m)
+
+    def test_prune_empty(self):
+        c = jwzthreading.Container()
+        self.assertEquals(jwzthreading.prune_container(c), [])
+
+    def test_prune_promote(self):
+        p = jwzthreading.Container()
+        c1 = jwzthreading.Container()
+        c1.message = jwzthreading.Message()
+        p.add_child(c1)
+        self.assertEquals(jwzthreading.prune_container(p), [c1])
 
 if __name__ == "__main__":
     unittest.main()
