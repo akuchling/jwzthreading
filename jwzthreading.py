@@ -3,15 +3,44 @@
 Contains an implementation of an algorithm for threading mail
 messages, as described at http://www.jwz.org/doc/threading.html.
 
-"""
+To use:
 
-# This code is under a BSD-style license; see the LICENSE file for details.
+  Create a bunch of Message instances, one per message to be threaded,
+  filling in the .subject, .message_id, and .references attributes.
+  You can use the .message attribute to record the RFC-822 message object,
+  or some other piece of information for your own purposes.
+
+  Call the thread() function with a list of the Message instances.
+
+  You'll get back a {subject line -> Container} dictionary; each
+  container may have a .children attribute giving descendants of each
+  message.  You'll probably want to sort these children by date, subject,
+  or some other criterion.
+
+This code is under a BSD-style license; see the LICENSE file for details.
+
+"""
 
 import re
 
 __all__ = ['Message', 'make_message', 'thread']
 
 class Container:
+    """Contains a tree of messages.
+
+    Instance attributes:
+      .message : Message
+        Message corresponding to this tree node.  This can be None,
+        if a Message-Id is referenced but no message with the ID is
+        included.
+
+      .children : [Container]
+        Possibly-empty list of child containers.
+
+      .parent : Container
+        Parent container; may be None.
+    """
+
     __slots__ = ['message', 'parent', 'children', 'id']
     def __init__ (self):
         self.message = self.parent = None
@@ -84,6 +113,19 @@ def make_message (msg):
     return new
 
 class Message (object):
+    """Represents a message to be threaded.
+
+    Instance attributes:
+    .subject : str
+      Subject line of the message.
+    .message_id : str
+      Message ID as retrieved from the Message-ID header.
+    .references : [str]
+      List of message IDs from the In-Reply-To and References headers.
+    .message : any
+      Can contain information for the caller's use (e.g. an RFC-822 message object).
+
+    """
     __slots__ = ['message', 'message_id', 'references', 'subject']
 
     def __init__(self, msg=None):
