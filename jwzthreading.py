@@ -55,7 +55,7 @@ restrip_pat = re.compile("""(
 """, re.I | re.VERBOSE)
 
 def make_message (msg):
-    """make_message(msg:rfc822.Message) : Message
+    """(msg:rfc822.Message) : Message
     Create a Message object for threading purposes from an RFC822
     message.
     """
@@ -96,7 +96,7 @@ class Message (object):
         return '<%s: %r>' % (self.__class__.__name__, self.message_id)
 
 def prune_container (container):
-    """prune_container(container:Container) : [Container]
+    """(container:Container) : [Container]
     Recursively prune a tree of containers, as described in step 4
     of the algorithm.  Returns a list of the children that should replace
     this container.
@@ -130,7 +130,7 @@ def prune_container (container):
 
 
 def thread (msglist):
-    """thread([Message]) : {string:Container}
+    """([Message]) : {string:Container}
 
     The main threading function.  This takes a list of Message
     objects, and returns a dictionary mapping subjects to Containers.
