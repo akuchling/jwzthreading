@@ -17,6 +17,8 @@ To use:
   message.  You'll probably want to sort these children by date, subject,
   or some other criterion.
 
+Copyright (c) 2003-2010, A.M. Kuchling.
+
 This code is under a BSD-style license; see the LICENSE file for details.
 
 """
