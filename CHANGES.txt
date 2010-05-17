@@ -1,8 +1,14 @@
 
+0.92: 2010-XX-XX
+
+     * Ported test suite to unittest module.
+     * Add several more tests.
+     * Improved docstrings.
+     * Made compatible with Python 3.x.
+
 0.91:
 
      * Include a license (BSD-style).
-
      * Add a simple test suite; it still needs expansion.
 
-     
+
