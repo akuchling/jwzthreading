@@ -91,5 +91,62 @@ Body.""")
         p.add_child(c1)
         self.assertEquals(jwzthreading.prune_container(p), [c1])
 
+    def test_thread_single(self):
+        "Thread a single message"
+        m = jwzthreading.Message(None)
+        m.subject = m.message_id = 'Single'
+        self.assertEqual(jwzthreading.thread([m])['Single'].message, m)
+
+    def test_thread_unrelated(self):
+        "Thread two unconnected messages"
+        m1 = jwzthreading.Message(None)
+        m1.subject = m1.message_id = 'First'
+        m2 = jwzthreading.Message(None)
+        m2.subject = m2.message_id = 'Second'
+        d = jwzthreading.thread([m1, m2])
+        self.assertEqual(d['First'].message, m1)
+        self.assertEqual(d['Second'].children, [])
+        self.assertEqual(d['Second'].message, m2)
+
+    def test_thread_two(self):
+        "Thread two messages together."
+        m1 = jwzthreading.Message(None)
+        m1.subject = m1.message_id = 'First'
+        m2 = jwzthreading.Message(None)
+        m2.subject = m2.message_id = 'Second'
+        m2.references = ['First']
+        d = jwzthreading.thread([m1, m2])
+        self.assertEqual(d['First'].message, m1)
+        self.assertEqual(len(d['First'].children), 1)
+        self.assertEqual(d['First'].children[0].message, m2)
+
+    def test_thread_two_reverse(self):
+        "Thread two messages together, with the child message listed first."
+        m1 = jwzthreading.Message(None)
+        m1.subject = m1.message_id = 'First'
+        m2 = jwzthreading.Message(None)
+        m2.subject = m2.message_id = 'Second'
+        m2.references = ['First']
+        d = jwzthreading.thread([m2, m1])
+        self.assertEqual(d['First'].message, m1)
+        self.assertEqual(len(d['First'].children), 1)
+        self.assertEqual(d['First'].children[0].message, m2)
+
+    def test_thread_two_missing_parent(self):
+        "Thread two messages, both children of a missing parent."
+        m1 = jwzthreading.Message(None)
+        m1.subject = 'Child'
+        m1.message_id = 'First'
+        m1.references = ['parent']
+        m2 = jwzthreading.Message(None)
+        m2.subject = 'Child'
+        m2.message_id = 'Second'
+        m2.references = ['parent']
+        d = jwzthreading.thread([m1, m2])
+        self.assertEqual(d['Child'].message, None)
+        self.assertEqual(len(d['Child'].children), 2)
+        self.assertEqual(d['Child'].children[0].message, m1)
+
+
 if __name__ == "__main__":
     unittest.main()
