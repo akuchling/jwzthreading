@@ -6,7 +6,8 @@ Test script for jwzthreading.
 """
 
 import unittest
-import jwzthreading, email, StringIO
+import jwzthreading
+from email import message_from_string
 
 try:
     import rfc822
@@ -15,9 +16,8 @@ except ImportError:
 
 tested_modules = ["jwzthreading"]
 
-def make_rfc822_message (S):
-    input = StringIO.StringIO(S)
-    return rfc822.Message(input)
+def make_message (S):
+    return message_from_string(S)
 
 
 class JWZTest (unittest.TestCase):
@@ -58,22 +58,35 @@ class JWZTest (unittest.TestCase):
     def test_uniq(self):
         self.assertEquals(jwzthreading.uniq((1,2,3,1,2,3)), [1,2,3])
 
-    def test_make_rfc822_message (self):
+    def test_rfc822_make_message (self):
         if rfc822 is None:
             return
+        from StringIO import StringIO
 
         msg_templ = """Subject: %(subject)s
 Message-ID: %(msg_id)s
 
 Message body
 """
-        m = make_rfc822_message("""Subject: random
+        f = StringIO("""Subject: random
+
+Body.""")
+        m = rfc822.Message(f)
+        self.assertRaises(ValueError, jwzthreading.make_message, m)
+
+    def test_email_make_message (self):
+        msg_templ = """Subject: %(subject)s
+Message-ID: %(msg_id)s
+
+Message body
+"""
+        m = message_from_string("""Subject: random
 
 Body.""")
         self.assertRaises(ValueError, jwzthreading.make_message, m)
 
     def test_basic_message(self):
-        msg = make_rfc822_message("""Subject: random
+        msg = message_from_string("""Subject: random
 Message-ID: <message1>
 References: <ref1> <ref2> <ref1>
 In-Reply-To: <reply>
