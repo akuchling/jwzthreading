@@ -6,7 +6,12 @@ Test script for jwzthreading.
 """
 
 import unittest
-import jwzthreading, rfc822, StringIO
+import jwzthreading, email, StringIO
+
+try:
+    import rfc822
+except ImportError:
+    rfc822 = None
 
 tested_modules = ["jwzthreading"]
 
@@ -53,7 +58,10 @@ class JWZTest (unittest.TestCase):
     def test_uniq(self):
         self.assertEquals(jwzthreading.uniq((1,2,3,1,2,3)), [1,2,3])
 
-    def test_make_message (self):
+    def test_make_rfc822_message (self):
+        if rfc822 is None:
+            return
+
         msg_templ = """Subject: %(subject)s
 Message-ID: %(msg_id)s
 
