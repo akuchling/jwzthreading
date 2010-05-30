@@ -43,7 +43,7 @@ class Container:
         Parent container; may be None.
     """
 
-    __slots__ = ['message', 'parent', 'children', 'id']
+    #__slots__ = ['message', 'parent', 'children', 'id']
     def __init__ (self):
         self.message = self.parent = None
         self.children = []
@@ -92,20 +92,20 @@ def make_message (msg):
     """
     new = Message(msg)
 
-    m = msgid_pat.search(msg.getheader("Message-ID", ""))
+    m = msgid_pat.search(msg.get("Message-ID", ""))
     if m is None:
         raise ValueError("Message does not contain a Message-ID: header")
 
     new.message_id = m.group(1)
 
     # Get list of unique message IDs from the References: header
-    refs = msg.getheader("References", "")
+    refs = msg.get("References", "")
     new.references = msgid_pat.findall(refs)
     new.references = uniq(new.references)
-    new.subject = msg.getheader('Subject', "No subject")
+    new.subject = msg.get('Subject', "No subject")
 
     # Get In-Reply-To: header and add it to references
-    in_reply_to = msg.getheader("In-Reply-To", "")
+    in_reply_to = msg.get("In-Reply-To", "")
     m = msgid_pat.search(in_reply_to)
     if m:
         msg_id = m.group(1)
