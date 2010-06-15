@@ -9,7 +9,7 @@ kw = {
 messages, as described at http://www.jwz.org/doc/threading.html.''',
     'author' : "A.M. Kuchling",
     'author_email' : "amk@amk.ca",
-    'url' : "http://www.amk.ca/python/code/jwzthreading.html",
+    'url' : "http://www.amk.ca/python/code/jwz.html",
     'py_modules' : ['jwzthreading'],
     'classifiers' : [
             'Development Status :: 3 - Alpha',
