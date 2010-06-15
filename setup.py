@@ -14,9 +14,11 @@ messages, as described at http://www.jwz.org/doc/threading.html.''',
     'classifiers' : [
             'Development Status :: 3 - Alpha',
             'Intended Audience :: Developers',
-	    'License :: OSI Approved :: BSD License',
+            'License :: OSI Approved :: BSD License',
+            'Programming Language :: Python :: 2',
+            'Programming Language :: Python :: 3',
             'Topic :: Software Development :: Libraries',
-	    'Topic :: Communications :: Email',
+            'Topic :: Communications :: Email',
             ]
 }
         
