@@ -1,14 +1,16 @@
 
-0.92: 2010-XX-XX
+0.92: 2010-06-14
 
-     * Ported test suite to unittest module.
-     * Add several more tests.
-     * Improved docstrings.
-     * Made compatible with Python 3.x.
+* Ported test suite to unittest module.
+* Removed __slots__ declarations; they pointlessly restrict what the
+ user can do.
+* Add several more tests.
+* Improved docstrings.
+* Made compatible with Python 3.x.
 
 0.91:
 
-     * Include a license (BSD-style).
-     * Add a simple test suite; it still needs expansion.
+* Include a license (BSD-style).
+* Add a simple test suite; it still needs expansion.
 
 
