@@ -24,6 +24,7 @@ This code is under a BSD-style license; see the LICENSE file for details.
 """
 
 import re
+from collections import deque
 
 __all__ = ['Message', 'make_message', 'thread']
 
@@ -43,10 +44,11 @@ class Container:
         Parent container; may be None.
     """
 
-    #__slots__ = ['message', 'parent', 'children', 'id']
+    #__slots__ = ['message', 'parent', 'children', 'id', 'visitedBy']
     def __init__ (self):
         self.message = self.parent = None
         self.children = []
+        self.visitedBy = False
 
     def __repr__ (self):
         return '<%s %x: %r>' % (self.__class__.__name__, id(self),
@@ -66,13 +68,16 @@ class Container:
         child.parent = None
 
     def has_descendant (self, ctr):
-        if self is ctr:
-            return True
-        for c in self.children:
-            if c is ctr:
+        stack = deque()
+        stack.append(self)
+        while stack:
+            node = stack.pop()
+            node.visitedBy = ctr
+            if node is ctr:
                 return True
-            elif c.has_descendant(ctr):
-                return True
+            for child in node.children:
+                if child.visitedBy is not ctr:
+                     stack.append(child)
         return False
 
 def uniq(alist):
