@@ -44,11 +44,10 @@ class Container:
         Parent container; may be None.
     """
 
-    #__slots__ = ['message', 'parent', 'children', 'id', 'visitedBy']
+    #__slots__ = ['message', 'parent', 'children', 'id']
     def __init__ (self):
         self.message = self.parent = None
         self.children = []
-        self.visitedBy = False
 
     def __repr__ (self):
         return '<%s %x: %r>' % (self.__class__.__name__, id(self),
@@ -68,16 +67,24 @@ class Container:
         child.parent = None
 
     def has_descendant (self, ctr):
+        """(Container): bool
+
+        Returns true if 'ctr' is a descendant of this Container.
+        """
+        # To avoid recursing indefinitely, we'll do a depth-first search;
+        # 'seen' tracks the containers we've already seen, and 'stack'
+        # is a deque containing containers that we need to look at.
         stack = deque()
         stack.append(self)
+        seen = set()
         while stack:
             node = stack.pop()
-            node.visitedBy = ctr
             if node is ctr:
                 return True
+            seen.add(node)
             for child in node.children:
-                if child.visitedBy is not ctr:
-                     stack.append(child)
+                if child not in seen:
+                    stack.append(child)
         return False
 
 def uniq(alist):

@@ -55,6 +55,22 @@ class JWZTest (unittest.TestCase):
         c2.add_child(c3)
         self.assertEquals(c3.parent, c2)
 
+    def test_deep_container(self):
+        # Build a 50000-deep list of nested Containers.
+        parent = jwzthreading.Container()
+        L = [parent]
+        for i in range(50000):
+            child = jwzthreading.Container()
+            parent.add_child(child)
+            L.append(child)
+            parent = child
+
+        # Test finding the last child
+        self.assertTrue(L[0].has_descendant(L[-1]))
+
+        # Test a search that fails
+        self.assertFalse(L[0].has_descendant(jwzthreading.Container()))
+        
     def test_uniq(self):
         self.assertEquals(jwzthreading.uniq((1,2,3,1,2,3)), [1,2,3])
 
