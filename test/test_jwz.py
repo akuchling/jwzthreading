@@ -169,6 +169,31 @@ Body.""")
         self.assertEqual(len(d['First'].children), 1)
         self.assertEqual(d['First'].children[0].message, m2)
 
+    def test_thread_lying_message(self):
+        "Thread three messages together, with other messages lying in their references."
+        dummy_parent_m = jwzthreading.Message(None)
+        dummy_parent_m.subject = dummy_parent_m.message_id = 'Dummy parent'
+        lying_before_m = jwzthreading.Message(None)
+        lying_before_m.subject = lying_before_m.message_id = 'Lying before'
+        lying_before_m.references = ['Dummy parent', 'Second', 'First', 'Third']
+        m1 = jwzthreading.Message(None)
+        m1.subject = m1.message_id = 'First'
+        m2 = jwzthreading.Message(None)
+        m2.subject = m2.message_id = 'Second'
+        m2.references = ['First']
+        m3 = jwzthreading.Message(None)
+        m3.subject = m3.message_id = 'Third'
+        m3.references = ['First', 'Second']
+        lying_after_m = jwzthreading.Message(None)
+        lying_after_m.subject = lying_after_m.message_id = 'Lying after'
+        #lying_after_m.references = ['Dummy parent','Third', 'Second', 'First']
+        d = jwzthreading.thread([dummy_parent_m, lying_before_m, m1, m2, m3, lying_after_m])
+        self.assertEqual(d['First'].message, m1)
+        self.assertEqual(len(d['First'].children), 1)
+        self.assertEqual(d['First'].children[0].message, m2)
+        self.assertEqual(len(d['First'].children[0].children), 1)
+        self.assertEqual(d['First'].children[0].children[0].message, m3)
+        
     def test_thread_two_missing_parent(self):
         "Thread two messages, both children of a missing parent."
         m1 = jwzthreading.Message(None)

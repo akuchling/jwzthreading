@@ -235,8 +235,11 @@ def thread (msglist):
                 id_table[ref] = container
 
             if prev is not None:
+                #If they are already linked, don't change the existing links.
+                if container.parent!=None:
+                    pass
                 # Don't add link if it would create a loop
-                if container is this_container or container.has_descendant(prev) or prev.has_descendant(container):
+                elif container is this_container or container.has_descendant(prev) or prev.has_descendant(container):
                     pass
                 else:
                     prev.add_child(container)
@@ -248,6 +251,10 @@ def thread (msglist):
         if prev is not None:
             ##print "Setting parent of "+repr(this_container)+", to last reference: " + repr (prev)
             prev.add_child(this_container)
+        else:
+            if(this_container.parent):
+                this_container.parent.remove_child(this_container)
+        
 
     # 2. Find root set
     root_set = [container for container in id_table.values()
