@@ -234,13 +234,12 @@ def thread (msglist):
                 container.message_id = ref
                 id_table[ref] = container
 
-            if (prev is not None):
+            if prev is not None:
                 # Don't add link if it would create a loop
-                if container is this_container:
-                    continue
-                if container.has_descendant(prev):
-                    continue
-                prev.add_child(container)
+                if container is this_container or container.has_descendant(prev) or prev.has_descendant(container):
+                    pass
+                else:
+                    prev.add_child(container)
 
             prev = container
             ## print "Finished processing reference for "+repr(msg.message_id)+", container now: "
