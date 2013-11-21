@@ -57,6 +57,11 @@ class Container:
         return self.message is None
 
     def add_child (self, child):
+        ##print "Assigning: "
+        ##print_container(child, 0, True)
+        ##print "as children of: "
+        ##print_container(self, 0, True)
+        
         if child.parent:
             child.parent.remove_child(child)
         self.children.append(child)
@@ -160,6 +165,9 @@ def prune_container (container):
 
     # Prune children, assembling a new list of children
     new_children = []
+
+    ##old_children = container.children[:]
+
     for ctr in container.children[:]:
         L = prune_container(ctr)
         new_children.extend(L)
@@ -167,6 +175,15 @@ def prune_container (container):
 
     for c in new_children:
         container.add_child(c)
+
+    ##if new_children != old_children:
+    ##    print 'Children for ' + repr(container) + 'Changed'
+    ##    print 'OLD children:'
+    ##    for ctr in old_children:
+    ##        print_container(ctr, 0, True)
+    ##    print 'NEW children:'
+    ##    for ctr in container.children[:]:
+    ##        print_container(ctr, 0, True)
 
     if (container.message is None and
         len(container.children) == 0):
@@ -177,6 +194,7 @@ def prune_container (container):
            container.parent is not None)):
         # 4.B: promote children
         L = container.children[:]
+        ##print "Promoting "+repr(len(container.children))+" children"
         for c in L:
             container.remove_child(c)
         return L
@@ -209,24 +227,34 @@ def thread (msglist):
         # 1B
         prev = None
         for ref in msg.references:
+            ## print "Processing reference for "+repr(msg.message_id)+": "+repr(ref)
             container = id_table.get(ref, None)
             if container is None:
                 container = Container()
                 container.message_id = ref
                 id_table[ref] = container
 
-            if (prev is not None):
+            if prev is not None:
+                #If they are already linked, don't change the existing links.
+                if container.parent!=None:
+                    pass
                 # Don't add link if it would create a loop
-                if container is this_container:
-                    continue
-                if container.has_descendant(prev):
-                    continue
-                prev.add_child(container)
+                elif container is this_container or container.has_descendant(prev) or prev.has_descendant(container):
+                    pass
+                else:
+                    prev.add_child(container)
 
             prev = container
-
+            ## print "Finished processing reference for "+repr(msg.message_id)+", container now: "
+            ## print_container(container, 0, True)
+        #1C
         if prev is not None:
+            ##print "Setting parent of "+repr(this_container)+", to last reference: " + repr (prev)
             prev.add_child(this_container)
+        else:
+            if(this_container.parent):
+                this_container.parent.remove_child(this_container)
+        
 
     # 2. Find root set
     root_set = [container for container in id_table.values()
@@ -241,7 +269,7 @@ def thread (msglist):
 
     ##print 'before'
     ##for ctr in root_set:
-    ##    print_container(ctr)
+    ##    print_container(ctr, 0, True)
 
     new_root_set = []
     for container in root_set:
@@ -252,7 +280,7 @@ def thread (msglist):
 
     ##print '\n\nafter'
     ##for ctr in root_set:
-    ##     print_container(ctr)
+    ##    print_container(ctr, 0, True)
 
     # 5. Group root set by subject
     subject_table = {}
@@ -315,13 +343,13 @@ def print_container(ctr, depth=0, debug=0):
     sys.stdout.write(depth*' ')
     if debug:
         # Printing the repr() is more useful for debugging
-        sys.stdout.write(repr(ctr))
+        sys.stdout.write(repr(ctr) + ' ' + repr(ctr.message and ctr.message.subject))
     else:
         sys.stdout.write(repr(ctr.message and ctr.message.subject))
 
     sys.stdout.write('\n')
     for c in ctr.children:
-        print_container(c, depth+1)
+        print_container(c, depth+1, debug)
 
 
 def main():
