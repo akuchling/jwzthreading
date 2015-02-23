@@ -89,7 +89,7 @@ Message body
 
 Body.""")
         m = rfc822.Message(f)
-        self.assertRaises(ValueError, jwzthreading.make_message, m)
+        self.assertRaises(ValueError, jwzthreading.Message, m)
 
     def test_email_make_message(self):
         msg_templ = """Subject: %(subject)s
@@ -100,7 +100,7 @@ Message body
         m = message_from_string("""Subject: random
 
 Body.""")
-        self.assertRaises(ValueError, jwzthreading.make_message, m)
+        self.assertRaises(ValueError, jwzthreading.Message, m)
 
     def test_basic_message(self):
         msg = message_from_string("""Subject: random
@@ -109,7 +109,7 @@ References: <ref1> <ref2> <ref1>
 In-Reply-To: <reply>
 
 Body.""")
-        m = jwzthreading.make_message(msg)
+        m = jwzthreading.Message(msg)
         self.assertTrue(repr(m))
         self.assertEquals(m.subject, 'random')
         self.assertEquals(sorted(m.references),

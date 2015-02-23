@@ -25,7 +25,7 @@ This code is under a BSD-style license; see the LICENSE file for details.
 import re
 from collections import deque
 
-__all__ = ['Message', 'make_message', 'thread']
+__all__ = ['Message', 'thread']
 
 
 #
@@ -121,11 +121,31 @@ class Message(object):
         message (any): Can contain information for the caller's use
             (e.g. an RFC-822 message object).
     """
+    message = None
+    message_id = None
+    references = []
+    subject = None
+
     def __init__(self, msg=None):
+        if msg is None:
+            return
+
+        msg_id = MSGID_RE.search(msg.get('Message-ID', ''))
+        if msg_id is None:
+            raise ValueError('Message does not contain a Message-ID: header')
+
         self.message = msg
-        self.message_id = None
-        self.references = []
-        self.subject = None
+        self.message_id = msg_id.group(1)
+
+        self.references = uniq(MSGID_RE.findall(msg.get('References', '')))
+        self.subject = msg.get('Subject', "No subject")
+
+        # Get In-Reply-To: header and add it to references
+        msg_id = MSGID_RE.search(msg.get('In-Reply-To', ''))
+        if msg_id:
+            msg_id = msg_id.group(1)
+            if msg_id not in self.references:
+                self.references.append(msg_id)
 
     def __repr__(self):
         return '<%s: %r>' % (self.__class__.__name__, self.message_id)
@@ -138,37 +158,6 @@ class Message(object):
 def uniq(alist):
     set = {}
     return [set.setdefault(e, e) for e in alist if e not in set.keys()]
-
-
-def make_message(msg):
-    """Create new Message object.
-
-    Create a Message object for threading purposes from an RFC822
-    message.
-    """
-    new = Message(msg)
-
-    m = MSGID_RE.search(msg.get("Message-ID", ""))
-    if m is None:
-        raise ValueError("Message does not contain a Message-ID: header")
-
-    new.message_id = m.group(1)
-
-    # Get list of unique message IDs from the References: header
-    refs = msg.get("References", "")
-    new.references = MSGID_RE.findall(refs)
-    new.references = uniq(new.references)
-    new.subject = msg.get('Subject', "No subject")
-
-    # Get In-Reply-To: header and add it to references
-    in_reply_to = msg.get("In-Reply-To", "")
-    m = MSGID_RE.search(in_reply_to)
-    if m:
-        msg_id = m.group(1)
-        if msg_id not in new.references:
-            new.references.append(msg_id)
-
-    return new
 
 
 def prune_container(container):
@@ -367,7 +356,7 @@ def main():
         msg = mbox.next()
         if msg is None:
             break
-        m = make_message(msg)
+        m = Message(msg)
         msglist.append(m)
     f.close()
 
