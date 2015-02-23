@@ -28,20 +28,28 @@ from collections import deque
 __all__ = ['Message', 'make_message', 'thread']
 
 
-class Container:
+#
+# constants
+#
+
+MSGID_RE = re.compile(r'<([^>]+)>')
+SUBJECT_RE = re.compile(
+    r'((Re(\[\d+\])?:) | (\[ [^]]+ \])\s*)+', re.I | re.VERBOSE)
+
+
+#
+# models
+#
+
+class Container(object):
     """Contains a tree of messages.
 
-    Instance attributes:
-      .message : Message
-        Message corresponding to this tree node.  This can be None,
-        if a Message-Id is referenced but no message with the ID is
-        included.
-
-      .children : [Container]
-        Possibly-empty list of child containers.
-
-      .parent : Container
-        Parent container; may be None.
+    Attributes:
+        message (Message): Message corresponding to this tree node.
+            This can be None, if a Message-Id is referenced but no
+            message with the ID is included.
+        children ([Container]): Possibly-empty list of child containers
+        parent (Container): Parent container, if any
     """
     def __init__(self):
         self.message = self.parent = None
@@ -52,22 +60,37 @@ class Container:
                                 self.message)
 
     def is_dummy(self):
+        """Check if Container has a message."""
         return self.message is None
 
     def add_child(self, child):
+        """Add a child to `self`.
+
+        Arguments:
+            child (Container): Child to add.
+        """
         if child.parent:
             child.parent.remove_child(child)
         self.children.append(child)
         child.parent = self
 
     def remove_child(self, child):
+        """Remove a child from `self`.
+
+        Arguments:
+            child (Container): Child to remove.
+        """
         self.children.remove(child)
         child.parent = None
 
     def has_descendant(self, ctr):
-        """(Container): bool
+        """Check if `ctr` is a descendant of this.
 
-        Returns true if 'ctr' is a descendant of this Container.
+        Arguments:
+            ctr (Container): possible descendant container.
+
+        Returns:
+            True if `ctr` is a descendant of `self`, else False.
         """
         # To avoid recursing indefinitely, we'll do a depth-first search;
         # 'seen' tracks the containers we've already seen, and 'stack'
@@ -86,60 +109,17 @@ class Container:
         return False
 
 
-def uniq(alist):
-    set = {}
-    return [set.setdefault(e, e) for e in alist if e not in set.keys()]
-
-msgid_pat = re.compile('<([^>]+)>')
-restrip_pat = re.compile("""(
-  (Re(\[\d+\])?:) | (\[ [^]]+ \])
-\s*)+
-""", re.I | re.VERBOSE)
-
-
-def make_message(msg):
-    """(msg:rfc822.Message) : Message
-
-    Create a Message object for threading purposes from an RFC822
-    message.
-    """
-    new = Message(msg)
-
-    m = msgid_pat.search(msg.get("Message-ID", ""))
-    if m is None:
-        raise ValueError("Message does not contain a Message-ID: header")
-
-    new.message_id = m.group(1)
-
-    # Get list of unique message IDs from the References: header
-    refs = msg.get("References", "")
-    new.references = msgid_pat.findall(refs)
-    new.references = uniq(new.references)
-    new.subject = msg.get('Subject', "No subject")
-
-    # Get In-Reply-To: header and add it to references
-    in_reply_to = msg.get("In-Reply-To", "")
-    m = msgid_pat.search(in_reply_to)
-    if m:
-        msg_id = m.group(1)
-        if msg_id not in new.references:
-            new.references.append(msg_id)
-
-    return new
-
-
-class Message (object):
+class Message(object):
     """Represents a message to be threaded.
 
-    Instance attributes:
-    .subject : str
-      Subject line of the message.
-    .message_id : str
-      Message ID as retrieved from the Message-ID header.
-    .references : [str]
-      List of message IDs from the In-Reply-To and References headers.
-    .message : any
-      Can contain information for the caller's use (e.g. an RFC-822 message object).
+    Attributes:
+        subject (str): Subject line of the message.
+        message_id (str): Message ID as retrieved from the Message-ID
+            header.
+        references ([str]): List of message IDs from the In-Reply-To
+            and References headers.
+        message (any): Can contain information for the caller's use
+            (e.g. an RFC-822 message object).
     """
     def __init__(self, msg=None):
         self.message = msg
@@ -151,12 +131,58 @@ class Message (object):
         return '<%s: %r>' % (self.__class__.__name__, self.message_id)
 
 
-def prune_container(container):
-    """(container:Container) : [Container]
+#
+# functions
+#
 
-    Recursively prune a tree of containers, as described in step 4
-    of the algorithm.  Returns a list of the children that should replace
+def uniq(alist):
+    set = {}
+    return [set.setdefault(e, e) for e in alist if e not in set.keys()]
+
+
+def make_message(msg):
+    """Create new Message object.
+
+    Create a Message object for threading purposes from an RFC822
+    message.
+    """
+    new = Message(msg)
+
+    m = MSGID_RE.search(msg.get("Message-ID", ""))
+    if m is None:
+        raise ValueError("Message does not contain a Message-ID: header")
+
+    new.message_id = m.group(1)
+
+    # Get list of unique message IDs from the References: header
+    refs = msg.get("References", "")
+    new.references = MSGID_RE.findall(refs)
+    new.references = uniq(new.references)
+    new.subject = msg.get('Subject', "No subject")
+
+    # Get In-Reply-To: header and add it to references
+    in_reply_to = msg.get("In-Reply-To", "")
+    m = MSGID_RE.search(in_reply_to)
+    if m:
+        msg_id = m.group(1)
+        if msg_id not in new.references:
+            new.references.append(msg_id)
+
+    return new
+
+
+def prune_container(container):
+    """Prune a tree of containers.
+
+    Recursively prune a tree of containers, as described in step 4 of
+    the algorithm. Returns a list of the children that should replace
     this container.
+
+    Arguments:
+        container (Container): Container to prune
+
+    Returns:
+        List of zero or more containers.
     """
     # Prune children, assembling a new list of children
     new_children = []
@@ -186,13 +212,18 @@ def prune_container(container):
 
 
 def thread(msglist):
-    """([Message]) : {string:Container}
+    """Thread a list of mail items.
 
-    The main threading function.  This takes a list of Message
-    objects, and returns a dictionary mapping subjects to Containers.
-    Containers are trees, with the .children attribute containing a
-    list of subtrees, so callers can then sort children by date or
-    poster or whatever.
+    Takes a list of Message objects, and returns a dictionary mapping
+    subjects to Containers. Containers are trees, with the `children`
+    attribute containing a list of subtrees, so callers can then sort
+    children by date or poster or whatever.
+
+    Arguments:
+        messages ([Message]): List of Message itesms
+
+    Returns:
+        dict of containers, with subject as the key
     """
     id_table = {}
     for msg in msglist:
@@ -262,7 +293,7 @@ def thread(msglist):
             c = container.children[0]
             subj = container.children[0].message.subject
 
-        subj = restrip_pat.sub('', subj)
+        subj = SUBJECT_RE.sub('', subj)
         if subj == "":
             continue
 
@@ -282,7 +313,7 @@ def thread(msglist):
         else:
             subj = container.children[0].message.subject
 
-        subj = restrip_pat.sub('', subj)
+        subj = SUBJECT_RE.sub('', subj)
         ctr = subject_table.get(subj)
         if ctr is None or ctr is container:
             continue
@@ -310,6 +341,7 @@ def thread(msglist):
 
 
 def print_container(ctr, depth=0, debug=0):
+    """Print summary of Thread to stdout."""
     import sys
 
     sys.stdout.write(depth * ' ')
