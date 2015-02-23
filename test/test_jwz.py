@@ -16,13 +16,14 @@ except ImportError:
 
 tested_modules = ["jwzthreading"]
 
-def make_message (S):
+
+def make_message(S):
     return message_from_string(S)
 
 
 class JWZTest (unittest.TestCase):
 
-    def test_container (self):
+    def test_container(self):
         c = jwzthreading.Container()
         repr(c)
 
@@ -70,11 +71,11 @@ class JWZTest (unittest.TestCase):
 
         # Test a search that fails
         self.assertFalse(L[0].has_descendant(jwzthreading.Container()))
-        
-    def test_uniq(self):
-        self.assertEquals(jwzthreading.uniq((1,2,3,1,2,3)), [1,2,3])
 
-    def test_rfc822_make_message (self):
+    def test_uniq(self):
+        self.assertEquals(jwzthreading.uniq((1, 2, 3, 1, 2, 3)), [1, 2, 3])
+
+    def test_rfc822_make_message(self):
         if rfc822 is None:
             return
         from StringIO import StringIO
@@ -90,7 +91,7 @@ Body.""")
         m = rfc822.Message(f)
         self.assertRaises(ValueError, jwzthreading.make_message, m)
 
-    def test_email_make_message (self):
+    def test_email_make_message(self):
         msg_templ = """Subject: %(subject)s
 Message-ID: %(msg_id)s
 
