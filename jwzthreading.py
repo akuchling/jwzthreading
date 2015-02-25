@@ -341,23 +341,23 @@ def print_container(ctr, depth=0, debug=0):
 
 def main():
     import mailbox
+    import sys
 
     msglist = []
 
     print('Reading input file...')
-    with open('mbox', 'rb') as file_:
-        mbox = mailbox.UnixMailbox(file_)
-        while 1:
-            msg = mbox.next()
-            if msg is None:
-                break
-            parsed_msg = Message(msg)
-            msglist.append(parsed_msg)
+    mbox = mailbox.mbox(sys.argv[1])
+    for message in mbox:
+        try:
+            parsed_msg = Message(message)
+        except ValueError:
+            continue
+        msglist.append(parsed_msg)
 
     print('Threading...')
     subject_table = thread(msglist)
 
-    # Output
+    print('Output...')
     subjects = subject_table.items()
     subjects.sort()
     for _, container in subjects:
