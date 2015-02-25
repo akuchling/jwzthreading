@@ -1,29 +1,19 @@
-#!/www/python/bin/python
-
 """
 Test script for jwzthreading.
-
 """
 
+# pylint: disable=c0103,c0111,r0904
+
 import unittest
-import jwzthreading
+import textwrap
 from email import message_from_string
 
-try:
-    import rfc822
-except ImportError:
-    rfc822 = None
-
-tested_modules = ["jwzthreading"]
+import jwzthreading
 
 
-def make_message(S):
-    return message_from_string(S)
-
-
-class JWZTest (unittest.TestCase):
-
+class TestContainer(unittest.TestCase):
     def test_container(self):
+        """Test linking of containers."""
         c = jwzthreading.Container()
         repr(c)
 
@@ -57,10 +47,11 @@ class JWZTest (unittest.TestCase):
         self.assertEquals(c3.parent, c2)
 
     def test_deep_container(self):
-        # Build a 50000-deep list of nested Containers.
+        """Build a 50000-deep list of nested Containers."""
         parent = jwzthreading.Container()
         L = [parent]
-        for i in range(50000):
+
+        for _ in xrange(50000):
             child = jwzthreading.Container()
             parent.add_child(child)
             L.append(child)
@@ -72,52 +63,40 @@ class JWZTest (unittest.TestCase):
         # Test a search that fails
         self.assertFalse(L[0].has_descendant(jwzthreading.Container()))
 
+
+class TestUniq(unittest.TestCase):
     def test_uniq(self):
         self.assertEquals(jwzthreading.uniq((1, 2, 3, 1, 2, 3)), [1, 2, 3])
 
-    def test_rfc822_make_message(self):
-        if rfc822 is None:
-            return
-        from StringIO import StringIO
 
-        msg_templ = """Subject: %(subject)s
-Message-ID: %(msg_id)s
-
-Message body
-"""
-        f = StringIO("""Subject: random
-
-Body.""")
-        m = rfc822.Message(f)
-        self.assertRaises(ValueError, jwzthreading.Message, m)
-
+class TestMessage(unittest.TestCase):
     def test_email_make_message(self):
-        msg_templ = """Subject: %(subject)s
-Message-ID: %(msg_id)s
+        text = """\
+            Subject: random
 
-Message body
-"""
-        m = message_from_string("""Subject: random
-
-Body.""")
-        self.assertRaises(ValueError, jwzthreading.Message, m)
+            Body."""
+        msg = message_from_string(textwrap.dedent(text))
+        self.assertRaises(ValueError, jwzthreading.Message, msg)
 
     def test_basic_message(self):
-        msg = message_from_string("""Subject: random
-Message-ID: <message1>
-References: <ref1> <ref2> <ref1>
-In-Reply-To: <reply>
+        text = """\
+            Subject: random
+            Message-ID: <message1>
+            References: <ref1> <ref2> <ref1>
+            In-Reply-To: <reply>
 
-Body.""")
+            Body."""
+        msg = message_from_string(textwrap.dedent(text))
         m = jwzthreading.Message(msg)
         self.assertTrue(repr(m))
         self.assertEquals(m.subject, 'random')
-        self.assertEquals(sorted(m.references),
-                          ['ref1', 'ref2', 'reply'])
+        self.assertEquals(sorted(m.references), ['ref1', 'ref2', 'reply'])
 
         # Verify that repr() works
         repr(m)
 
+
+class TestPrune(unittest.TestCase):
     def test_prune_empty(self):
         c = jwzthreading.Container()
         self.assertEquals(jwzthreading.prune_container(c), [])
@@ -129,14 +108,16 @@ Body.""")
         p.add_child(c1)
         self.assertEquals(jwzthreading.prune_container(p), [c1])
 
+
+class TestThread(unittest.TestCase):
     def test_thread_single(self):
-        "Thread a single message"
+        """Thread a single message."""
         m = jwzthreading.Message(None)
         m.subject = m.message_id = 'Single'
         self.assertEqual(jwzthreading.thread([m])['Single'].message, m)
 
     def test_thread_unrelated(self):
-        "Thread two unconnected messages"
+        """Thread two unconnected messages."""
         m1 = jwzthreading.Message(None)
         m1.subject = m1.message_id = 'First'
         m2 = jwzthreading.Message(None)
@@ -147,7 +128,7 @@ Body.""")
         self.assertEqual(d['Second'].message, m2)
 
     def test_thread_two(self):
-        "Thread two messages together."
+        """Thread two messages together."""
         m1 = jwzthreading.Message(None)
         m1.subject = m1.message_id = 'First'
         m2 = jwzthreading.Message(None)
