@@ -295,17 +295,12 @@ def thread (msglist):
                 ctr.add_child(container)
             else:
                 container.add_child(ctr)
-        elif len(ctr.message.subject) < len(container.message.subject):
+        elif len(ctr.message.subject) <= len(container.message.subject):
             # ctr has fewer levels of 're:' headers
             ctr.add_child(container)
-        elif len(ctr.message.subject) > len(container.message.subject):
+        else:
             # container has fewer levels of 're:' headers
             container.add_child(ctr)
-        else:
-            new = Container()
-            new.add_child(ctr)
-            new.add_child(container)
-            subject_table[subj] = new
 
     return subject_table
 
